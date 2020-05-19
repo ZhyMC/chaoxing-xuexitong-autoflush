@@ -22,7 +22,7 @@ class Net{
 			return this.jar.store.getAllCookies((err,data)=>y(data[0]));
 		})
 	}
-	async get(page,query){
+	async get(page,query,savecookie){
 		if(!query)query={};
 		let obj=Object.assign(this.base,{
 			pathname:page,
@@ -35,8 +35,8 @@ class Net{
 				"User-Agent":Net.UserAgent
 			}
 		});
-		//if(res.headers.has("set-cookie"))
-		//await this.setCookie(res.headers.get("set-cookie"));
+		if(savecookie && res.headers.has("set-cookie"))
+		await this.setCookie(res.headers.get("set-cookie"));
 
 		return res.text();
 	}
