@@ -11,6 +11,7 @@ let task=require("./courseTask.js");
 let prompt=require("prompts");
 let coursepicker=require("./coursepicker.js");
 let Net=require("./net.js");
+let Config=require("./config.js");
 
 async function getUser(cookie){
 	let domain="https://mooc1-1.chaoxing.com/";
@@ -25,18 +26,22 @@ async function getUser(cookie){
 	}
 	return user;
 }
+
 async function start(){
-	let cookie=await (new Loginer().login());
-	
+	let config = await (new Config("./config.json").read())
+	let cookie=await (new Loginer().login(config));
+
 	let user=await getUser(cookie);
 	//console.log(cookie);
 	console.log("\n");
 
-	let {speed}=await prompt({type:"number",name:"speed",message:"请输入视频刷课速率(不填默认为2)"});
-	if(!speed)speed=2.0;
+	if(!config.speed) {
+		Object.assign(config, await prompt({type:"number",name:"speed",message:"请输入视频刷课速率(不填默认为2)"}));
+	}
+	if(!config.speed)config.speed=2.0;
 
 	let picker=new coursepicker(user);
-	let courses=await picker.pick();
+	let courses=await picker.pick(config);
 
 	if(!courses.length) {
 		console.log("似乎没有课程可用, 程序已退出");
@@ -45,12 +50,13 @@ async function start(){
 
 	console.log("\n");
 
-	let {test}=await prompt({type:"text",name:"test",message:"默认自动过测验,若需要关闭该功能请填写 no 并回车"})
-	let autotest=test=="no"?false:true;
+	if(!config.test){
+		Object.assign(config, await prompt({type:"text",name:"test",message:"默认自动过测验,若需要关闭该功能请填写 no 并回车"}));
+	}
+	let autotest=config.test=="no"?false:true;
 
-//	console.log(courses);
-
-	new task(courses,user,speed,autotest);
+	//	console.log(courses);
+	new task(courses,user,config.speed,config.autotest);
 
 }
 async function debug(cookie){

@@ -10,7 +10,7 @@ class Loginer{//登录器
 		this.imgurl=__dirname+"/verifycode.jpg";
 		//	this.login();
 	}
-	async login(){//设置各种引导,最终返回登录Cookie
+	async login(acc = {}){//设置各种引导,最终返回登录Cookie
 		/*
 		while(true){
 			let acc={};
@@ -32,13 +32,16 @@ class Loginer{//登录器
 		}
 		*/
 
-			let acc={};
-			acc=await prompt([
+		if(!acc.uname || !acc.password) {
+			console.log("配置文件中账号或密码未填写,请手动输入")
+			Object.assign(acc, await prompt([
 					{type:"text",name:"uname",message:"请输入超星账户手机号"},
 					{type:"text",name:"password",message:"请输入账户密码"},
-				])
-				if(!acc.uname || !acc.password)//填空代表退出登录
-					throw "输入为空,退出程序"
+			]))
+		}
+		if(!acc.uname || !acc.password)//填空代表退出登录
+
+			throw "输入为空,退出程序"
 
 		
 		const res = await this.doLoginGet(acc.uname, acc.password)

@@ -24,15 +24,15 @@ class CoursePicker{
 		this.pickinfos[clazzid].picked=!this.pickinfos[clazzid].picked;
 	}
 	printCoursesGUI(){
-		
+
 		let gui="";
 		let header=[{value:"序号"},{value:"课程ID"},{value:"标题"},{value:"选中",color:"red",width:10,
-		formatter:function(val){
-			if(val=="是")
-				return this.style(val,"green","bold");
-			else
-				return this.style(val,"red");
-		}
+			formatter:function(val){
+				if(val=="是")
+					return this.style(val,"green","bold");
+				else
+					return this.style(val,"red");
+			}
 		}];
 
 		let built=[];
@@ -52,9 +52,10 @@ class CoursePicker{
 	async input(){
 		return (await prompt({type:"text",name:"input",message:""}));
 	}
-	async pick(){
+	async pick(config){
 		await this.getAllCourses();
-		while(true){
+
+		while(!config.pick && true){
 			this.printCoursesGUI();
 
 			let chosen=await this.input();
@@ -67,6 +68,43 @@ class CoursePicker{
 
 			await sleep(200);
 		}
+
+		if(config.pick) {
+			if( config.pickinfos ) {
+				this.pickinfos  = config.pickinfos;
+
+				let header=[{value:"序号"},{value:"课程ID"},{value:"标题"},{value:"选中",color:"red",width:10,
+					formatter:function(val){
+						if(val=="是")
+							return this.style(val,"green","bold");
+						else
+							return this.style(val,"red");
+					}
+				}];
+
+				let built=[];
+				for(let i in this.list){
+					let info=this.pickinfos[this.list[i].clazzId] || {picked:true};
+					built.push([i,this.list[i].courseId,this.list[i].title,info.picked?"是":"否"]);
+				}
+				let tb=new Table(header,built).render();
+				this.gui_area.write(tb);
+				await sleep(1000);
+			} else {
+				const pickinfos = {};
+				for(const i of this.list) {
+					pickinfos[i.clazzId] = {
+						picked: true,
+						title: i.title,
+					}
+				}
+				config.pickinfos = pickinfos;
+				await config.write();
+				console.log("课程获取完毕请调成config.json并重启该程序");
+				process.exit(0);
+			}
+		}
+
 
 		let picks=[];
 		for(let i in this.list){
